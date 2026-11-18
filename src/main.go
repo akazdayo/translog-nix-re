@@ -1,35 +1,32 @@
-package main;
+package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
-	"io"
-	"translog-nix/src/narinfo"
+	"log"
+	"log/slog"
+	"os"
+
+	"k8s.io/klog/v2"
+
+	"translog-nix/src/logs"
 )
 
 func main() {
-	url := "https://cache.nixos.org"
-	ia := "fkv51s1m2gsy6pz71nnyqyprbvfg7sd7"
-	text_narinfo := get_upstream(url, ia)
-	var info narinfo.NarInfo
+	// 初回に旧チェックポイントが見つからない旨は情報ログなので、警告以上を表示する。
+	klog.SetSlogLogger(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn})))
 
-	parsed, err := info.Parse(text_narinfo)
-
-	if err != nil {
-		return
+	// 追記する値をここで指定する。
+	entry := logs.Entry{
+		StorePathHash: "fkv51s1m2gsy6pz71nnyqyprbvfg7sd7",
+		NarHash:       "sha256:050rzmgxapsh3n8n6k68dxk6lr1683igd33bsix0vw0a2zgp1jix",
+		CacheURL:      "https://cache.nixos.org",
 	}
 
-	fmt.Println("StorePath:", parsed.StorePath)
-	fmt.Println("NarHash:", parsed.NarHash)
-	fmt.Println("NarSize:", parsed.NarSize)
+	// 署名鍵を環境変数から読み込み、作業ディレクトリの ./logs に追記する。
+	index, err := logs.Append(context.Background(), "./logs", os.Getenv("LOG_PRIVATE_KEY"), entry)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(index)
 }
-
-
-func get_upstream(url, inputAddressed string) string {
-	resp, _ := http.Get(fmt.Sprintf("%s/%s.narinfo", url, inputAddressed))
-	defer resp.Body.Close()
-
-	byteArray, _ := io.ReadAll(resp.Body)
-	return string(byteArray)
-}
-
