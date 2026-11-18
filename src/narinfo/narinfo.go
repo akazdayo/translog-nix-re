@@ -1,25 +1,27 @@
 package narinfo
 
 import (
-	"strings"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type NarInfo struct {
-	StorePath string
-	URL string
+	StorePath   string
+	URL         string
 	Compression Compression
-	FileHash string
-	FileSize int
-	NarHash string
-	NarSize int
-	References string
-	Deriver string
-	Sig string
+	FileHash    string
+	FileSize    int
+	NarHash     string
+	NarSize     int
+	References  string
+	Deriver     string
+	Sig         string
 }
 
-func (n *NarInfo) Parse(text string) (*NarInfo, error) {
+// Parse は .narinfo のテキストを読み取り、NarInfo を返す。
+func Parse(text string) (NarInfo, error) {
+	var n NarInfo
 	for _, line := range strings.Split(text, "\n") {
 		line = strings.TrimSpace(line)
 
@@ -29,7 +31,7 @@ func (n *NarInfo) Parse(text string) (*NarInfo, error) {
 
 		key, value, ok := strings.Cut(line, ": ")
 		if !ok {
-			return nil, fmt.Errorf("invalid line: %q", line)
+			return NarInfo{}, fmt.Errorf("invalid line: %q", line)
 		}
 
 		switch key {
@@ -48,7 +50,7 @@ func (n *NarInfo) Parse(text string) (*NarInfo, error) {
 		case "FileSize":
 			i, err := strconv.Atoi(value)
 			if err != nil {
-				return nil, fmt.Errorf("FileSize is invalid type: %q", value)
+				return NarInfo{}, fmt.Errorf("FileSize is invalid type: %q", value)
 			}
 			n.FileSize = i
 
@@ -58,7 +60,7 @@ func (n *NarInfo) Parse(text string) (*NarInfo, error) {
 		case "NarSize":
 			i, err := strconv.Atoi(value)
 			if err != nil {
-				return nil, fmt.Errorf("NarSize is invalid type: %q", value)
+				return NarInfo{}, fmt.Errorf("NarSize is invalid type: %q", value)
 			}
 			n.NarSize = i
 
