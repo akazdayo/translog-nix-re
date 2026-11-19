@@ -11,11 +11,10 @@ import (
 	"golang.org/x/mod/sumdb/note"
 )
 
-// Entry は Nix バイナリキャッシュが報告した NAR ハッシュとその取得元を記録する。
+// Entry は上流の .narinfo の原文と取得元のキャッシュ URL を記録する。
 type Entry struct {
-	StorePathHash string `json:"store_path_hash"`
-	NarHash       string `json:"nar_hash"`
-	CacheURL      string `json:"cache_url"`
+	CacheURL string `json:"cache_url"`
+	NarInfo  string `json:"narinfo"`
 }
 
 // Append は1件追記し、そのエントリを含む署名済みチェックポイントが公開された後にインデックスを返す。
