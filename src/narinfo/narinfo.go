@@ -16,7 +16,8 @@ type NarInfo struct {
 	NarSize     int
 	References  string
 	Deriver     string
-	Sig         string
+	Sig         []string
+	CA          string
 }
 
 // Parse は .narinfo のテキストを読み取り、NarInfo を返す。
@@ -29,10 +30,11 @@ func Parse(text string) (NarInfo, error) {
 			continue
 		}
 
-		key, value, ok := strings.Cut(line, ": ")
-		if !ok {
+		key, value, ok := strings.Cut(line, ":")
+		if !ok || (value != "" && !strings.HasPrefix(value, " ")) {
 			return NarInfo{}, fmt.Errorf("invalid line: %q", line)
 		}
+		value = strings.TrimPrefix(value, " ")
 
 		switch key {
 		case "StorePath":
@@ -71,7 +73,10 @@ func Parse(text string) (NarInfo, error) {
 			n.Deriver = value
 
 		case "Sig":
-			n.Sig = value
+			n.Sig = append(n.Sig, value)
+
+		case "CA":
+			n.CA = value
 		}
 
 	}
