@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/transparency-dev/tessera"
@@ -27,6 +28,9 @@ func Append(ctx context.Context, dir, privateKey string, entry Entry) (uint64, e
 	data, err := json.Marshal(entry)
 	if err != nil {
 		return 0, fmt.Errorf("encode entry: %w", err)
+	}
+	if len(data) > math.MaxUint16 {
+		return 0, fmt.Errorf("log entry exceeds %d bytes", math.MaxUint16)
 	}
 
 	// 追記処理を抜けるときに Tessera のバックグラウンド処理を止める。

@@ -18,11 +18,20 @@ type NarInfo struct {
 	Deriver     string
 	Sig         []string
 	CA          string
+
+	// TODO: rawを削除し、NarInfoからstringにdeserializeするときに正規化するようにしましょう
+	// 現状は処理をシンプルにするためにこの形式にしています
+	raw string
+}
+
+// Raw は Parse に渡された .narinfo の原文を返す。
+func (n NarInfo) Raw() string {
+	return n.raw
 }
 
 // Parse は .narinfo のテキストを読み取り、NarInfo を返す。
 func Parse(text string) (NarInfo, error) {
-	var n NarInfo
+	n := NarInfo{raw: text}
 	for _, line := range strings.Split(text, "\n") {
 		line = strings.TrimSpace(line)
 

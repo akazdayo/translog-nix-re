@@ -16,9 +16,10 @@ import (
 // 例として、entries/000.p/1 は最初のバンドルの先頭1件を指す。
 var tilePath = regexp.MustCompile(`^(entries|0|[1-9][0-9]?)/(x[0-9]{3}/)*[0-9]{3}(\.p/[1-9][0-9]{0,2})?$`)
 
-// registerRoutes は外部の検証者が Tessera のログを読み取るためのルートを登録する。
+// ルートを登録する。
 func registerRoutes(router chi.Router, logDir string) {
 	files := logFileHandlers{dir: logDir}
+	observations := newObserver(logDir, os.Getenv("LOG_PRIVATE_KEY"))
 
 	router.Get("/", serveHome)
 	// 実行後にファイルの差し替えも可能ということは確認した
@@ -26,6 +27,7 @@ func registerRoutes(router chi.Router, logDir string) {
 	router.Head("/checkpoint", files.serveCheckpoint)
 	router.Get("/tile/*", files.serveTile)
 	router.Head("/tile/*", files.serveTile)
+	router.Post("/api/v1/observe", observations.serveObserve)
 }
 
 func serveHome(w http.ResponseWriter, _ *http.Request) {
