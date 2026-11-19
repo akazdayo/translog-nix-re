@@ -3,6 +3,7 @@ module translog-nix
 go 1.27.3
 
 require (
+	github.com/go-chi/chi/v5 v5.5.0
 	github.com/transparency-dev/tessera v1.0.4
 	golang.org/x/mod v0.33.0
 	k8s.io/klog/v2 v2.130.1
