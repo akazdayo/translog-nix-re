@@ -6,7 +6,6 @@ require (
 	github.com/go-chi/chi/v5 v5.5.0
 	github.com/transparency-dev/tessera v1.0.4
 	golang.org/x/mod v0.33.0
-	k8s.io/klog/v2 v2.130.1
 )
 
 require (
@@ -21,7 +20,8 @@ require (
 	go.opentelemetry.io/otel v1.40.0 // indirect
 	go.opentelemetry.io/otel/metric v1.40.0 // indirect
 	go.opentelemetry.io/otel/trace v1.40.0 // indirect
-	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	golang.org/x/sync v0.19.0 // indirect
+	k8s.io/klog/v2 v2.130.1 // indirect
 )
