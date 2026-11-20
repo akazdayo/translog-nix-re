@@ -1,8 +1,7 @@
 package narinfo
 
 import (
-	"fmt"
-	"strconv"
+	"slices"
 	"strings"
 )
 
@@ -18,77 +17,39 @@ type NarInfo struct {
 	Deriver     string
 	Sig         []string
 	CA          string
-
-	// TODO: rawを削除し、NarInfoからstringにdeserializeするときに正規化するようにしましょう
-	// 現状は処理をシンプルにするためにこの形式にしています
-	raw string
 }
 
-// Raw は Parse に渡された .narinfo の原文を返す。
-func (n NarInfo) Raw() string {
-	return n.raw
+// Equal は .narinfo の正規化で吸収する表記の差を除いて比較する。
+func (n NarInfo) Equal(other NarInfo) bool {
+	return n.StorePath == other.StorePath &&
+		n.URL == other.URL &&
+		n.Compression == other.Compression &&
+		n.FileHash == other.FileHash &&
+		n.FileSize == other.FileSize &&
+		n.NarHash == other.NarHash &&
+		n.NarSize == other.NarSize &&
+		n.CA == other.CA &&
+		n.normalizedDeriver() == other.normalizedDeriver() &&
+		slices.Equal(n.normalizedReferences(), other.normalizedReferences()) &&
+		slices.Equal(n.normalizedSignatures(), other.normalizedSignatures())
 }
 
-// Parse は .narinfo のテキストを読み取り、NarInfo を返す。
-func Parse(text string) (NarInfo, error) {
-	n := NarInfo{raw: text}
-	for _, line := range strings.Split(text, "\n") {
-		line = strings.TrimSpace(line)
-
-		if line == "" {
-			continue
-		}
-
-		key, value, ok := strings.Cut(line, ":")
-		if !ok || (value != "" && !strings.HasPrefix(value, " ")) {
-			return NarInfo{}, fmt.Errorf("invalid line: %q", line)
-		}
-		value = strings.TrimPrefix(value, " ")
-
-		switch key {
-		case "StorePath":
-			n.StorePath = value
-
-		case "URL":
-			n.URL = value
-
-		case "Compression":
-			n.Compression = Compression(value)
-
-		case "FileHash":
-			n.FileHash = value
-
-		case "FileSize":
-			i, err := strconv.Atoi(value)
-			if err != nil {
-				return NarInfo{}, fmt.Errorf("FileSize is invalid type: %q", value)
-			}
-			n.FileSize = i
-
-		case "NarHash":
-			n.NarHash = value
-
-		case "NarSize":
-			i, err := strconv.Atoi(value)
-			if err != nil {
-				return NarInfo{}, fmt.Errorf("NarSize is invalid type: %q", value)
-			}
-			n.NarSize = i
-
-		case "References":
-			n.References = value
-
-		case "Deriver":
-			n.Deriver = value
-
-		case "Sig":
-			n.Sig = append(n.Sig, value)
-
-		case "CA":
-			n.CA = value
-		}
-
+func (n NarInfo) normalizedDeriver() string {
+	if n.Deriver == "unknown-deriver" {
+		return ""
 	}
+	return n.Deriver
+}
 
-	return n, nil
+// Nix は参照と署名を集合として扱う。
+func (n NarInfo) normalizedReferences() []string {
+	references := strings.Fields(n.References)
+	slices.Sort(references)
+	return slices.Compact(references)
+}
+
+func (n NarInfo) normalizedSignatures() []string {
+	signatures := slices.Clone(n.Sig)
+	slices.Sort(signatures)
+	return slices.Compact(signatures)
 }

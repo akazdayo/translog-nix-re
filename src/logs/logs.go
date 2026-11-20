@@ -12,7 +12,7 @@ import (
 	"golang.org/x/mod/sumdb/note"
 )
 
-// Entry は上流の .narinfo の原文と取得元のキャッシュ URL を記録する。
+// Entry は正規化済みの .narinfo と取得元のキャッシュ URL を記録する。
 type Entry struct {
 	CacheURL string `json:"cache_url"`
 	NarInfo  string `json:"narinfo"`

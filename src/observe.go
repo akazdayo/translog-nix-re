@@ -155,10 +155,10 @@ func (o *observer) record(ctx context.Context, target observationTarget, info na
 	// 再起動後には重複した記述を行ってしまう問題がある
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	if previous, found := o.latest[target]; found && previous.info.Raw() == info.Raw() {
+	if previous, found := o.latest[target]; found && previous.info.Equal(info) {
 		return previous.index, false, nil
 	}
-	entry := logs.Entry{CacheURL: target.CacheURL, NarInfo: info.Raw()}
+	entry := logs.Entry{CacheURL: target.CacheURL, NarInfo: info.String()}
 	index, err := logs.Append(context.WithoutCancel(ctx), o.logDir, o.privateKey, entry)
 	if err != nil {
 		return 0, false, err
