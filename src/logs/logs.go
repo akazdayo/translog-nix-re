@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/transparency-dev/tessera"
@@ -11,11 +12,10 @@ import (
 	"golang.org/x/mod/sumdb/note"
 )
 
-// Entry は Nix バイナリキャッシュが報告した NAR ハッシュとその取得元を記録する。
+// Entry は正規化済みの .narinfo と取得元のキャッシュ URL を記録する。
 type Entry struct {
-	StorePathHash string `json:"store_path_hash"`
-	NarHash       string `json:"nar_hash"`
-	CacheURL      string `json:"cache_url"`
+	CacheURL string `json:"cache_url"`
+	NarInfo  string `json:"narinfo"`
 }
 
 // Append は1件追記し、そのエントリを含む署名済みチェックポイントが公開された後にインデックスを返す。
@@ -28,6 +28,9 @@ func Append(ctx context.Context, dir, privateKey string, entry Entry) (uint64, e
 	data, err := json.Marshal(entry)
 	if err != nil {
 		return 0, fmt.Errorf("encode entry: %w", err)
+	}
+	if len(data) > math.MaxUint16 {
+		return 0, fmt.Errorf("log entry exceeds %d bytes", math.MaxUint16)
 	}
 
 	// 追記処理を抜けるときに Tessera のバックグラウンド処理を止める。
